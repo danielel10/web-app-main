@@ -64,14 +64,9 @@ def all_molecules():
 
                 # Create a BuriedVolume object depending on z axios or not
                 if use_Sterimol:
-                    print("HEREEEEEEEEEEEEEEEEEEEEEEEEEE")
-                    print(type(coordinates[0][0]))
-                    sterimol = Sterimol(coordinates, center_atom, 1, 2)
+                    sterimol = Sterimol(elements, coordinates, 1, 2)
                     sterimol_params = sterimol.calculate()
-                    b_values = [param.B for param in sterimol_params]
-                    l_values = [param.L for param in sterimol_params]
-                    l_b_values = b_values.append(l_values)
-                    sterimol_radius = max(l_b_values)
+                    sterimol_radius = max(sterimol_params.B_5_value, sterimol_params.B_1_value, sterimol_params.L_value)
                     bv = BuriedVolume(elements, coordinates, center_atom, excluded_atoms, z_axis_atoms=zaxis_atoms, radius=sterimol_radius)    
                 else:
                     bv = BuriedVolume(elements, coordinates, center_atom, excluded_atoms, z_axis_atoms=zaxis_atoms)
