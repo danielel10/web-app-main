@@ -69,6 +69,10 @@
         <b-form-group id="form-nonmetalic-group" label="If you dont want a metalic ligand enter a new index for the center atom:" label-for="form-nonmetalic-input">
           <b-form-textarea id="form-nonmetalic-input" v-model="importMoleculeForm.nonmetalic" placeholder="Enter new index for centering"></b-form-textarea>
         </b-form-group>
+        <!-- Checkbox for Sterimol parameters -->
+        <b-form-checkbox id="form-Sterimol-checkbox" v-model="importMoleculeForm.useSterimol" switch>
+          Use Sterimol Parameters
+        </b-form-checkbox>
         <b-button-group>
           <b-button type="submit" variant="primary">Submit</b-button>
           <b-button type="reset" variant="danger">Reset</b-button>
@@ -115,6 +119,7 @@ export default {
       ignore: '',
       zaxis: '',
       nonmetalic: '',
+      useSterimol: false, 
       },
       searchQuery: '', // Search query for filtering molecules
     };
@@ -140,34 +145,38 @@ export default {
     },
 
     onSubmit(evt) {
-      evt.preventDefault( );
-      this.$refs.importMoleculeModal.hide();
-      const file = this.importMoleculeForm.file;
-      const formData = new FormData();
-      const numToIgnoreList = this.importMoleculeForm.ignore.split(',') == '' ? 
-                            null : this.importMoleculeForm.ignore.split(',').map(Number);
-      const zaxisatoms = this.importMoleculeForm.zaxis.split(',') == '' ? 
-                          null : this.importMoleculeForm.zaxis.split(',').map(Number);
-      const nonmetalic = this.importMoleculeForm.nonmetalic.split(',') == '' ? 
-                            null : this.importMoleculeForm.nonmetalic.split(',').map(Number);
-      formData.append('numToIgnoreList', JSON.stringify(numToIgnoreList));
-      formData.append('zaxisatoms', JSON.stringify(zaxisatoms));
-      formData.append('nonmetalic', JSON.stringify(nonmetalic));
-      formData.append('file', file)
-        // Send the molecule to the backend
-        axios.post('http://localhost:5000/Molecules', formData , {headers: {
+  evt.preventDefault( );
+  this.$refs.importMoleculeModal.hide();
+  const file = this.importMoleculeForm.file;
+  const formData = new FormData();
+  const numToIgnoreList = this.importMoleculeForm.ignore.split(',') == '' ? 
+                          null : this.importMoleculeForm.ignore.split(',').map(Number);
+  const zaxisatoms = this.importMoleculeForm.zaxis.split(',') == '' ? 
+                        null : this.importMoleculeForm.zaxis.split(',').map(Number);
+  const nonmetalic = this.importMoleculeForm.nonmetalic.split(',') == '' ? 
+                        null : this.importMoleculeForm.nonmetalic.split(',').map(Number);
+  const useSterimol = this.importMoleculeForm.useSterimol; // New checkbox state
+  formData.append('numToIgnoreList', JSON.stringify(numToIgnoreList));
+  formData.append('zaxisatoms', JSON.stringify(zaxisatoms));
+  formData.append('nonmetalic', JSON.stringify(nonmetalic));
+  formData.append('useSterimol', JSON.stringify(useSterimol)); // Include Sterimol parameter
+  formData.append('file', file);
+
+  // Send the molecule to the backend
+  axios.post('http://localhost:5000/Molecules', formData , {headers: {
         'Content-Type': 'multipart/form-data'
       }})
-          .then(response => {
-            this.getmolecules();
-          })
-          .catch(error => {
-            const errorMessage  = "center atom was not provided for a metal-free moluecule"
-            this.errorHandler(errorMessage);
-            this.getmolecules();
-          });
-      this.initForm();
-    },
+    .then(response => {
+      this.getmolecules();
+    })
+    .catch(error => {
+      const errorMessage  = "center atom was not provided for a metal-free molecule";
+      this.errorHandler(errorMessage);
+      this.getmolecules();
+    });
+  this.initForm();
+},
+
 
     onReset(evt) {
       evt.preventDefault();
