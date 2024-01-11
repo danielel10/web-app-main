@@ -3,6 +3,7 @@ node_modules
 /dist
 /frontend/node_modules
 /frontend/package-lock.json
+/backend/molvenv
 
 # local env files
 .env.local
