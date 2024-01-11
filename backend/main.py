@@ -3,7 +3,7 @@ from flask_cors import CORS
 from flask import Flask, jsonify, request
 import numpy as np
 import uuid
-from morfeus import BuriedVolume, read_xyz
+from morfeus import BuriedVolume, read_xyz, Sterimol
 import tempfile
 import json
 import shutil
@@ -40,6 +40,7 @@ def all_molecules():
         excluded_atoms = json.loads(request.form['numToIgnoreList'])
         zaxis_atoms = json.loads(request.form['zaxisatoms'])
         non_metalic = json.loads(request.form['nonmetalic'])
+        use_Sterimol = json.loads(request.form['useSterimol'])
         file_content = file.read()  # read the contents of the uploaded file
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
             temp_file.write(file_content)
@@ -62,8 +63,19 @@ def all_molecules():
                 id = uuid.uuid4().hex
 
                 # Create a BuriedVolume object depending on z axios or not
-                bv = BuriedVolume(elements, coordinates, center_atom, excluded_atoms, z_axis_atoms=zaxis_atoms)
-
+                if use_Sterimol:
+                    print("HEREEEEEEEEEEEEEEEEEEEEEEEEEE")
+                    print(type(coordinates[0][0]))
+                    sterimol = Sterimol(coordinates, center_atom, 1, 2)
+                    sterimol_params = sterimol.calculate()
+                    b_values = [param.B for param in sterimol_params]
+                    l_values = [param.L for param in sterimol_params]
+                    l_b_values = b_values.append(l_values)
+                    sterimol_radius = max(l_b_values)
+                    bv = BuriedVolume(elements, coordinates, center_atom, excluded_atoms, z_axis_atoms=zaxis_atoms, radius=sterimol_radius)    
+                else:
+                    bv = BuriedVolume(elements, coordinates, center_atom, excluded_atoms, z_axis_atoms=zaxis_atoms)
+                # bv = BuriedVolume(elements, coordinates, center_atom, excluded_atoms, z_axis_atoms=zaxis_atoms)
                 # if we want to create a strict map we need zaxis atoms
                 if zaxis_atoms:
                     plot_id = f"plot_{id}.png"
